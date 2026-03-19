@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('fc_token'));
   const [loading, setLoading] = useState(true);
 
-  axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = 'https://farmer-3asr.onrender.com';
   if (token) axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
   useEffect(() => {

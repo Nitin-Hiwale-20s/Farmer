@@ -46,20 +46,24 @@ const userSchema = new mongoose.Schema({
   totalRatings: { type: Number, default: 0 }
 }, { timestamps: true });
 
-// Hash password before save
+// Single pre-save hook — hash password + generate farmerId
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
-});
+  try {
+    // 1. Hash password if modified
+    if (this.isModified('password')) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
 
-// Generate Farmer ID
-userSchema.pre('save', async function(next) {
-  if (this.role === 'farmer' && !this.farmerId) {
-    const count = await mongoose.model('User').countDocuments({ role: 'farmer' });
-    this.farmerId = `FC-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    // 2. Generate Farmer ID for new farmers
+    if (this.role === 'farmer' && !this.farmerId) {
+      const count = await mongoose.model('User').countDocuments({ role: 'farmer' });
+      this.farmerId = `FC-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    }
+
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 });
 
 userSchema.methods.comparePassword = async function(password) {

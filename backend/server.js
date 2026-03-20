@@ -25,32 +25,27 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/delivery', require('./routes/delivery'));
 
-// Socket.io for real-time order tracking
+// Socket.io
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('join-room', (userId) => {
-    socket.join(userId);
-    console.log(`User ${userId} joined their room`);
-  });
-
+  socket.on('join-room', (userId) => socket.join(userId));
   socket.on('order-status-update', (data) => {
     io.to(data.buyerId).emit('order-updated', data);
     io.to(data.farmerId).emit('order-updated', data);
   });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
 });
 
-// Make io available in routes
 app.set('io', io);
 
-// MongoDB Connection
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('❌ Error on', req.method, req.path, '-', err.message);
+  res.status(500).json({ message: err.message || 'Internal Server Error' });
+});
+
+// MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/farmconnect')
   .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.error('❌ MongoDB Error:', err));
+  .catch(err => console.error('❌ MongoDB Error:', err.message));
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

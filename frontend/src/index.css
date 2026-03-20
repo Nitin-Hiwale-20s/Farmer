@@ -1,9 +1,37 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-font-smoothing: antialiased; }
-.loading-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f0fdf4; }
-.spinner { width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #16a34a; border-radius: 50%; animation: spin 0.8s linear infinite; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-font-smoothing: antialiased; transition: background 0.3s, color 0.3s; }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 a { text-decoration: none; }
-button { font-family: inherit; }
-input, select, textarea { font-family: inherit; }
-input:focus, select:focus, textarea:focus { border-color: #16a34a !important; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1); }
+button, input, select, textarea { font-family: inherit; }
+input:focus, select:focus, textarea:focus { border-color: #16a34a !important; box-shadow: 0 0 0 3px rgba(22,163,74,0.15) !important; }
+
+/* Mobile responsive grid fixes */
+@media (max-width: 768px) {
+  /* Hide desktop nav links on mobile - handled by Navbar component */
+  .desktop-only { display: none !important; }
+  
+  /* Make grids single column on mobile */
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .two-col { grid-template-columns: 1fr !important; }
+  
+  /* Sidebar becomes top bar on mobile */
+  .dashboard-page { flex-direction: column !important; }
+  .sidebar { width: 100% !important; height: auto !important; position: relative !important; flex-direction: row !important; flex-wrap: wrap !important; padding: 1rem !important; }
+  
+  /* Cart/Checkout layout */
+  .checkout-layout { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr !important; }
+  .hero-btns { flex-direction: column !important; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #16a34a; border-radius: 3px; }
+
+/* Toast dark mode */
+.Toastify__toast { border-radius: 12px !important; }

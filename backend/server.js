@@ -9,12 +9,23 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+
+// ✅ CORS Fix — सर्व origins allow करा
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Preflight requests handle करा
+
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
@@ -24,6 +35,11 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/delivery', require('./routes/delivery'));
+
+// Test route
+app.get('/', (req, res) => {
+  res.json({ message: '🌾 FarmConnect API Running!', status: 'ok' });
+});
 
 // Socket.io
 io.on('connection', (socket) => {
@@ -38,8 +54,8 @@ app.set('io', io);
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('❌ Error on', req.method, req.path, '-', err.message);
-  res.status(500).json({ message: err.message || 'Internal Server Error' });
+  console.error('❌ Error:', err.message);
+  res.status(500).json({ message: err.message || 'Server Error' });
 });
 
 // MongoDB

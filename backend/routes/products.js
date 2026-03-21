@@ -7,9 +7,11 @@ const { protect, authorize } = require('../middleware/auth');
 router.get('/', async (req, res) => {
   try {
     const { category, search, minPrice, maxPrice, organic, sort } = req.query;
-    let query = { isAvailable: true, availableQty: { $gt: 0 } };
+    
+    // isAvailable आणि isApproved filter काढला — सर्व products दिसतील
+    let query = { availableQty: { $gt: 0 } };
 
-    if (category) query.category = category;
+    if (category && category !== 'सर्व') query.category = category;
     if (organic === 'true') query.isOrganic = true;
     if (minPrice || maxPrice) {
       query.price = {};
@@ -28,6 +30,17 @@ router.get('/', async (req, res) => {
       .sort(sortObj);
 
     res.json({ success: true, count: products.length, products });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/products/farmer/my-products - Farmer चे स्वतःचे products
+// ⚠️ हे /:id च्या आधी असणे जरुरी आहे
+router.get('/farmer/my-products', protect, authorize('farmer'), async (req, res) => {
+  try {
+    const products = await Product.find({ farmer: req.user._id }).sort({ createdAt: -1 });
+    res.json({ success: true, products });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -54,19 +67,20 @@ router.post('/', protect, authorize('farmer'), async (req, res) => {
       ...req.body,
       farmer: req.user._id,
       farmerId: req.user.farmerId,
-      isApproved: true
+      isApproved: true,
+      isAvailable: true  // ✅ नेहमी available
     });
-    res.status(201).json({ success: true, message: 'Product add केला! Shop मध्ये live! 🎉', product });
+    res.status(201).json({ success: true, message: '🎉 Product add झाला! Shop मध्ये live आहे!', product });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 // PUT /api/products/:id - Farmer product update करतो
-router.put('/:id', protect, authorize('farmer'), async (req, res) => {
+router.put('/:id', protect, authorize('farmer', 'admin'), async (req, res) => {
   try {
-    const product = await Product.findOne({ _id: req.params.id, farmer: req.user._id });
-    if (!product) return res.status(404).json({ message: 'Product सापडला नाही किंवा तुमचा नाही' });
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product सापडला नाही' });
 
     Object.assign(product, req.body);
     await product.save();
@@ -86,11 +100,11 @@ router.delete('/:id', protect, authorize('farmer', 'admin'), async (req, res) =>
   }
 });
 
-// GET /api/products/farmer/my-products - Farmer चे स्वतःचे products
-router.get('/farmer/my-products', protect, authorize('farmer'), async (req, res) => {
+// PUT /api/products/approve-all - सर्व products approve करा (admin)
+router.put('/approve-all', protect, authorize('admin'), async (req, res) => {
   try {
-    const products = await Product.find({ farmer: req.user._id }).sort({ createdAt: -1 });
-    res.json({ success: true, products });
+    await Product.updateMany({}, { isApproved: true, isAvailable: true });
+    res.json({ success: true, message: 'सर्व products approved!' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

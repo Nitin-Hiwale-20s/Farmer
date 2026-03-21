@@ -7,7 +7,7 @@ const { protect, authorize } = require('../middleware/auth');
 router.get('/', async (req, res) => {
   try {
     const { category, search, minPrice, maxPrice, organic, sort } = req.query;
-    let query = { isAvailable: true, isApproved: true, availableQty: { $gt: 0 } };
+    let query = { isAvailable: true, availableQty: { $gt: 0 } };
 
     if (category) query.category = category;
     if (organic === 'true') query.isOrganic = true;
@@ -53,9 +53,10 @@ router.post('/', protect, authorize('farmer'), async (req, res) => {
     const product = await Product.create({
       ...req.body,
       farmer: req.user._id,
-      farmerId: req.user.farmerId
+      farmerId: req.user.farmerId,
+      isApproved: true
     });
-    res.status(201).json({ success: true, message: 'Product add केला! Admin approval pending.', product });
+    res.status(201).json({ success: true, message: 'Product add केला! Shop मध्ये live! 🎉', product });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

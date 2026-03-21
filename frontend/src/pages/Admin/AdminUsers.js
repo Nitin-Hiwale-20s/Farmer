@@ -78,7 +78,9 @@ const AdminUsers = () => {
                 {user.role === 'delivery' && <div><span style={s.detailKey}>Vehicle:</span> {user.vehicleNumber}</div>}
               </div>
               <div>
-                {user.isVerified ? <span style={s.verified}>✓ Verified</span> : <span style={s.unverified}>Not Verified</span>}
+                {user.role === 'farmer' && (user.isVerified ? <span style={s.verified}>✓ Verified</span> : <span style={s.unverified}>⏳ Not Verified</span>)}
+                {user.role === 'buyer' && <span style={s.verified}>✓ Active Buyer</span>}
+                {user.role === 'delivery' && (user.isVerified ? <span style={s.verified}>✓ Verified</span> : <span style={s.unverified}>⏳ Not Verified</span>)}
                 <br />
                 <span style={{ ...s.activeBadge, color: user.isActive ? '#16a34a' : '#ef4444' }}>
                   {user.isActive ? '● Active' : '● Blocked'}
